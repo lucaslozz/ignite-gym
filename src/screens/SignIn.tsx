@@ -1,21 +1,20 @@
-import { VStack, Image, Text, Center, Heading, ScrollView } from "native-base"
+import { VStack, Image, Text, Center, Heading, ScrollView } from 'native-base';
+import { useForm, Controller } from 'react-hook-form';
 
-import { useNavigation } from "@react-navigation/native"
-import { AuthNavigatorRoutesProps } from "../routes/auth.routes"
+import { useNavigation } from '@react-navigation/native';
+import { AuthNavigatorRoutesProps } from '../routes/auth.routes';
 
-import BackgroundImg from "../assets/background.png"
-import LogoSvg from "../assets/logo.svg"
+import BackgroundImg from '../assets/background.png';
+import LogoSvg from '../assets/logo.svg';
 
-import { Input } from "../components/Input"
-import { Button } from "../components/Button"
-
+import { Input } from '../components/Input';
+import { Button } from '../components/Button';
 
 export function SignIn() {
-
-  const { navigate } = useNavigation<AuthNavigatorRoutesProps>()
+  const { navigate } = useNavigation<AuthNavigatorRoutesProps>();
 
   function handleNewAccount() {
-    navigate("signUp")
+    navigate('signUp');
   }
 
   return (
@@ -23,12 +22,14 @@ export function SignIn() {
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
     >
-
       <VStack flex={1} px={10}>
         <Image
           source={BackgroundImg}
           defaultSource={BackgroundImg}
-          alt="pessoas treinando" resizeMode="contain" position="absolute" />
+          alt="pessoas treinando"
+          resizeMode="contain"
+          position="absolute"
+        />
 
         <Center my={24}>
           <LogoSvg />
@@ -38,7 +39,7 @@ export function SignIn() {
         </Center>
 
         <Center>
-          <Heading color="gray.100" fontSize="xl" mb={6} fontFamily={"heading"}>
+          <Heading color="gray.100" fontSize="xl" mb={6} fontFamily={'heading'}>
             Acesse sua conta
           </Heading>
           <Input
@@ -47,28 +48,23 @@ export function SignIn() {
             autoCapitalize="none"
           />
 
-          <Input
-            placeholder="Senha"
-            secureTextEntry
-          />
+          <Input placeholder="Senha" secureTextEntry />
 
           <Button title="Acessar" />
         </Center>
 
         <Center mt={24}>
-          <Text
-            color="gray.100"
-            fontSize="sm" mb={3}
-            fontFamily="body">
+          <Text color="gray.100" fontSize="sm" mb={3} fontFamily="body">
             Ainda não tem acesso?
           </Text>
 
           <Button
             title="Criar Conta"
             variant="outline"
-            onPress={handleNewAccount} />
+            onPress={handleNewAccount}
+          />
         </Center>
       </VStack>
     </ScrollView>
-  )
+  );
 }
