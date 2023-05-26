@@ -7,7 +7,9 @@ import { useContext } from 'react';
 
 export function Routes() {
   const { colors } = useTheme();
-  const {} = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+
+  console.log(user);
 
   const theme = DefaultTheme;
   theme.colors.background = colors.gray[700];

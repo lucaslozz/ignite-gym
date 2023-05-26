@@ -60,8 +60,8 @@ export function SignUp() {
 
   async function handleSignUp({ name, email, password }: FormDataProps) {
     try {
-      const response = await api.post('/users', { name, email, password });
-      console.log(response.data);
+      const { data } = await api.post('/users', { name, email, password });
+      console.log(data);
     } catch (error) {
       const isAppError = error instanceof AppError;
       const title = isAppError
