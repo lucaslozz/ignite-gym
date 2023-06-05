@@ -17,7 +17,7 @@ import LogoSvg from '../assets/logo.svg';
 
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { AppError } from '../utils/AppError';
 
@@ -27,6 +27,7 @@ interface SignInFormData {
 }
 
 export function SignIn() {
+  const [isLoading, setIsLoading] = useState(false);
   const { navigate } = useNavigation<AuthNavigatorRoutesProps>();
   const { SignIn } = useContext(AuthContext);
   const {
@@ -44,6 +45,8 @@ export function SignIn() {
 
   async function handleSignIn({ email, password }: SignInFormData) {
     try {
+      setIsLoading(true);
+
       await SignIn(email, password);
       reset();
     } catch (error) {
@@ -54,8 +57,8 @@ export function SignIn() {
         : 'Não foi possível entrar. Tente novamente mais tarde.';
 
       show({ title, placement: 'top', bgColor: 'red.500' });
-
-      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -100,9 +103,26 @@ export function SignIn() {
             )}
           />
 
-          <Input placeholder="Senha" secureTextEntry />
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Senha"
+                secureTextEntry
+                onChangeText={onChange}
+                value={value}
+                errorMessage={errors.password?.message}
+                isInvalid={!!errors.password}
+              />
+            )}
+          />
 
-          <Button title="Acessar" onPress={handleSubmit(handleSignIn)} />
+          <Button
+            title="Acessar"
+            onPress={handleSubmit(handleSignIn)}
+            isLoading={isLoading}
+          />
         </Center>
 
         <Center mt={24}>
