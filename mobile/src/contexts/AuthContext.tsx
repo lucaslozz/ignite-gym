@@ -2,11 +2,17 @@ import { ReactNode, createContext, useEffect, useState } from 'react';
 
 import { api } from '../services/api';
 import { UserDTO } from '../dtos/UserDTO';
-import { storageUserGet, storageUserSave } from '../storage/storageUser';
+import {
+  storageUserGet,
+  storageUserSave,
+  storageUserRemove,
+} from '../storage/storageUser';
 
 export interface AuthContextDataProps {
   user: UserDTO;
+  isLoadingUserStorageData: boolean;
   SignIn: (email: string, password: string) => Promise<void>;
+  SignOut: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextDataProps>(
@@ -19,6 +25,8 @@ interface AuthContextProviderProps {
 
 export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [user, setUser] = useState<UserDTO>({} as UserDTO);
+  const [isLoadingUserStorageData, setIsLoadingUserStorageData] =
+    useState(true);
 
   async function SignIn(email: string, password: string) {
     try {
@@ -33,11 +41,30 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     }
   }
 
-  async function loadUserData() {
-    const userLogged = await storageUserGet();
+  async function SignOut() {
+    try {
+      setIsLoadingUserStorageData(true);
+      setUser({} as UserDTO);
+      await storageUserRemove();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoadingUserStorageData(false);
+    }
+  }
 
-    if (userLogged) {
-      setUser(userLogged);
+  async function loadUserData() {
+    try {
+      const userLogged = await storageUserGet();
+
+      if (userLogged) {
+        setUser(userLogged);
+        setIsLoadingUserStorageData(false);
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoadingUserStorageData(false);
     }
   }
 
@@ -49,7 +76,9 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     <AuthContext.Provider
       value={{
         user,
+        isLoadingUserStorageData,
         SignIn,
+        SignOut,
       }}
     >
       {children}

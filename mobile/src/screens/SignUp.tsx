@@ -19,8 +19,9 @@ import LogoSvg from '../assets/logo.svg';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { api } from '../services/api';
-import axios from 'axios';
 import { AppError } from '../utils/AppError';
+import { useContext, useState } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 
 interface FormDataProps {
   name: string;
@@ -43,6 +44,10 @@ const signUpSchema = yup.object({
 });
 
 export function SignUp() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { SignIn } = useContext(AuthContext);
+
   const {
     control,
     handleSubmit,
@@ -60,8 +65,13 @@ export function SignUp() {
 
   async function handleSignUp({ name, email, password }: FormDataProps) {
     try {
+      setIsLoading(true);
+
       const { data } = await api.post('/users', { name, email, password });
-      console.log(data)
+
+      if (data) {
+        SignIn(email, password);
+      }
     } catch (error) {
       const isAppError = error instanceof AppError;
       const title = isAppError
@@ -73,6 +83,8 @@ export function SignUp() {
         placement: 'top',
         bgColor: 'red.500',
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -164,6 +176,7 @@ export function SignUp() {
           <Button
             title="Criar e acessar"
             onPress={handleSubmit(handleSignUp)}
+            isLoading={isLoading}
           />
         </Center>
 

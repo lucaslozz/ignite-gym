@@ -4,10 +4,15 @@ import { AuthRoutes } from './auth.routes';
 import { AppRoutes } from './app.routes';
 import { AuthContext } from '../contexts/AuthContext';
 import { useContext } from 'react';
+import { Loading } from '../components/Loading';
 
 export function Routes() {
   const { colors } = useTheme();
-  const { user } = useContext(AuthContext);
+  const { user, isLoadingUserStorageData } = useContext(AuthContext);
+
+  if (isLoadingUserStorageData) {
+    return <Loading />;
+  }
 
   const theme = DefaultTheme;
   theme.colors.background = colors.gray[700];
