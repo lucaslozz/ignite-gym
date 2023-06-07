@@ -9,15 +9,13 @@ export function Routes() {
   const { colors } = useTheme();
   const { user } = useContext(AuthContext);
 
-  console.log(user);
-
   const theme = DefaultTheme;
   theme.colors.background = colors.gray[700];
 
   return (
     <Box bg="gray.700" flex={1}>
       <NavigationContainer>
-        <AuthRoutes />
+        {user.id ? <AppRoutes /> : <AuthRoutes />}
       </NavigationContainer>
     </Box>
   );
