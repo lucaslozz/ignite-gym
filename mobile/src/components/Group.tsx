@@ -1,5 +1,4 @@
 import { Pressable, Text, IPressableProps } from 'native-base';
-import { border } from 'native-base/lib/typescript/theme/styled-system';
 
 interface Group extends IPressableProps {
   name: string;
