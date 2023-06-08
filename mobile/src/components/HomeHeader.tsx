@@ -10,7 +10,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 
 export function HomeHeader() {
-  const { user } = useContext(AuthContext);
+  const { user, SignOut } = useContext(AuthContext);
   return (
     <HStack bg="gray.600" pt={16} pb={5} px={8} alignItems="center">
       <UserPhoto
@@ -30,7 +30,13 @@ export function HomeHeader() {
       </VStack>
 
       <TouchableOpacity>
-        <Icon as={MaterialIcons} name="logout" color="gray.200" size={7} />
+        <Icon
+          as={MaterialIcons}
+          name="logout"
+          color="gray.200"
+          size={7}
+          onPress={() => SignOut()}
+        />
       </TouchableOpacity>
     </HStack>
   );
