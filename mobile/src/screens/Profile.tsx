@@ -36,15 +36,17 @@ const profileSchema = yup.object({
     .transform((value) => (!!value ? value : null)),
   password_confirmation: yup
     .string()
-    .oneOf([yup.ref('password')], 'A confirmação de senha não confere')
     .nullable()
-    .transform((value) =>
-      (!!value ? value : null).when('password', {
-        is: (Field: any) => Field,
-        then: (schema: any) =>
-          schema.nullable().required('A confirmação de senha é obrigatária'),
-      }),
-    ),
+    .transform((value) => (!!value ? value : null))
+    .oneOf([yup.ref('password')], 'As senhas devem ser iguais.')
+    .when('password', {
+      is: (Field: any) => Field,
+      then: (schema) =>
+        schema
+          .nullable()
+          .required('Informe a confirmação da senha.')
+          .transform((value) => (!!value ? value : null)),
+    }),
 });
 
 export function Profile() {
@@ -155,6 +157,7 @@ export function Profile() {
                 secureTextEntry
                 onChangeText={onChange}
                 errorMessage={errors.password?.message}
+                isInvalid={!!errors.password}
               />
             )}
           />
@@ -169,6 +172,7 @@ export function Profile() {
                 secureTextEntry
                 onChangeText={onChange}
                 errorMessage={errors.password_confirmation?.message}
+                isInvalid={!!errors.password_confirmation}
               />
             )}
           />
