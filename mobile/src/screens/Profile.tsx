@@ -10,7 +10,7 @@ import {
 } from 'native-base';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { UserPhoto } from '../components/UserPhoto';
-import { Alert, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Controller, useForm } from 'react-hook-form';
@@ -20,9 +20,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { api } from '../services/api';
 import { AppError } from '../utils/AppError';
 
+import defaultUserPhotoImg from '../assets/userPhotoDefault.png';
+
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { platformSpecificSpaceUnits } from 'native-base/lib/typescript/theme/tools';
 
 const PHOTO_SIZE = 33;
 
@@ -65,7 +66,6 @@ const profileSchema = yup.object({
 export function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
-  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const { user, updateUserProfile } = useContext(AuthContext);
 
   const {
@@ -143,7 +143,27 @@ export function Profile() {
           });
         }
 
-        setUserPhoto(photoSelected.assets[0].uri);
+        const fileExtension = photoSelected.assets[0].uri.split('.').pop();
+
+        const photoFile = {
+          name: `${user.name}.${fileExtension}`.toLowerCase(),
+          uri: photoSelected.assets[0].uri,
+          type: `image/${fileExtension}`,
+        } as any;
+
+        const userPhotoUploadForm = new FormData();
+
+        userPhotoUploadForm.append('avatar', photoFile);
+
+        const { data } = await api.patch('/users/avatar', userPhotoUploadForm, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        console.log(data.avatar);
+
+        updateUserProfile(data.avatar);
         show({
           title: 'Foto atualizada com sucesso!',
           placement: 'top',
@@ -172,13 +192,11 @@ export function Profile() {
             />
           ) : (
             <UserPhoto
-              source={{
-                uri: `${
-                  userPhoto
-                    ? userPhoto
-                    : 'https://avatars.githubusercontent.com/u/37388181?v=4'
-                }`,
-              }}
+              source={
+                user.avatar
+                  ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` }
+                  : defaultUserPhotoImg
+              }
               alt="foto do usuário"
               size={PHOTO_SIZE}
             />

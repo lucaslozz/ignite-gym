@@ -8,13 +8,18 @@ import defaultUserPhotoImg from '../assets/userPhotoDefault.png';
 import { UserPhoto } from './UserPhoto';
 import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
+import { api } from '../services/api';
 
 export function HomeHeader() {
   const { user, SignOut } = useContext(AuthContext);
   return (
     <HStack bg="gray.600" pt={16} pb={5} px={8} alignItems="center">
       <UserPhoto
-        source={user.avatar ? { uri: user.avatar } : defaultUserPhotoImg}
+        source={
+          user.avatar
+            ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` }
+            : defaultUserPhotoImg
+        }
         size={16}
         alt="foto de perfil do usuario"
         mr={4}
