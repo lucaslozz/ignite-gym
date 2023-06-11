@@ -6,16 +6,23 @@ import {
   Skeleton,
   Text,
   Heading,
+  useToast,
 } from 'native-base';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { UserPhoto } from '../components/UserPhoto';
-import { TouchableOpacity } from 'react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Controller, useForm } from 'react-hook-form';
 import { AuthContext } from '../contexts/AuthContext';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { api } from '../services/api';
+import { AppError } from '../utils/AppError';
+
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { platformSpecificSpaceUnits } from 'native-base/lib/typescript/theme/tools';
 
 const PHOTO_SIZE = 33;
 
@@ -26,6 +33,12 @@ interface FormDataProps {
   old_password: string;
   password_confirmation: string;
 }
+
+type FileInfoProps = FileSystem.FileInfo & {
+  size: number;
+  md5?: string | undefined;
+  modificationTime: number;
+};
 
 const profileSchema = yup.object({
   name: yup.string().required('Informe o nome'),
@@ -50,8 +63,11 @@ const profileSchema = yup.object({
 });
 
 export function Profile() {
+  const [isLoading, setIsLoading] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
-  const { user } = useContext(AuthContext);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const { user, updateUserProfile } = useContext(AuthContext);
+
   const {
     control,
     handleSubmit,
@@ -64,8 +80,81 @@ export function Profile() {
     resolver: yupResolver(profileSchema),
   });
 
+  const { show } = useToast();
+
   async function handleProfileUpdate(data: FormDataProps) {
-    console.log(data);
+    try {
+      setIsLoading(true);
+
+      const userUpdated = user;
+      userUpdated.name = data.name;
+
+      await api.put('/users', data);
+
+      show({
+        title: 'Perfil atualizado com sucesso!',
+        placement: 'top',
+        bgColor: 'green.500',
+      });
+
+      updateUserProfile(userUpdated);
+    } catch (error) {
+      const isAppError = error instanceof AppError;
+      const title = isAppError
+        ? error.message
+        : 'Não foi possível atualizar o perfil';
+
+      show({
+        title,
+        placement: 'top',
+        bgColor: 'red.500',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleUserPhotoSelect() {
+    try {
+      setPhotoIsLoading(true);
+
+      const photoSelected = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        aspect: [4, 4],
+        allowsEditing: true,
+      });
+
+      if (photoSelected.canceled) {
+        return;
+      }
+
+      if (photoSelected.assets[0].uri) {
+        const photoInfo = (await FileSystem.getInfoAsync(
+          photoSelected.assets[0].uri,
+          { size: true },
+        )) as FileInfoProps;
+
+        if (photoInfo.size && photoInfo.size / 1024 / 1024 > 5) {
+          return show({
+            title: 'Essa imagem é muito grande. Escolha uma de até 5MB',
+            placement: 'top',
+            bgColor: 'red.500',
+          });
+        }
+
+        setUserPhoto(photoSelected.assets[0].uri);
+        show({
+          title: 'Foto atualizada com sucesso!',
+          placement: 'top',
+          bgColor: 'green.500',
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setPhotoIsLoading(false);
+    }
   }
 
   return (
@@ -84,13 +173,17 @@ export function Profile() {
           ) : (
             <UserPhoto
               source={{
-                uri: 'https://avatars.githubusercontent.com/u/37388181?v=4',
+                uri: `${
+                  userPhoto
+                    ? userPhoto
+                    : 'https://avatars.githubusercontent.com/u/37388181?v=4'
+                }`,
               }}
               alt="foto do usuário"
               size={PHOTO_SIZE}
             />
           )}
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleUserPhotoSelect}>
             <Text
               color="green.500"
               fontWeight="bold"
@@ -181,6 +274,7 @@ export function Profile() {
             title="Atualizar"
             mt={4}
             onPress={handleSubmit(handleProfileUpdate)}
+            isLoading={isLoading}
           />
         </VStack>
       </ScrollView>
